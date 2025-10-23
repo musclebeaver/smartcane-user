@@ -31,7 +31,7 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     enabled: true
-    path: /docs           # 스웨거 UI 접속 경로: http://localhost:8082/docs
+    path: /docs
     display-request-duration: true
     operations-sorter: method
     tags-sorter: alpha

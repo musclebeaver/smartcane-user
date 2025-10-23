@@ -1,6 +1,19 @@
 spring:
+  config:
+    activate:
+      on-profile: local
+
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/smartcane_user?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: Smartcane1!
+    url: jdbc:mysql://127.0.0.1:3306/smartcane_user?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&createDatabaseIfNotExist=true
+    username: smartcane
+    password: smartcane123!
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  flyway:
+    # 별도 설정 없으면 위 datasource를 그대로 사용
+    # 혹시 로컬에서만 마이그레이션 켜고 싶으면 enabled: true 유지
+    enabled: true
+
+# (선택) 타임존/로캘 관련
+server:
+  timezone: Asia/Seoul

@@ -10,6 +10,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 
 import java.util.List;
 
@@ -17,32 +18,61 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
-                .headers(h -> h.frameOptions(frame -> frame.sameOrigin())) // (필요시 H2 콘솔 등)
-                .authorizeHttpRequests(auth -> auth
-                        // CORS preflight
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+//    @Bean
+//    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+//        http
+//                .csrf(csrf -> csrf.ignoringRequestMatchers(
+//                        new AntPathRequestMatcher("/v3/api-docs/**"),
+//                        new AntPathRequestMatcher("/swagger-ui/**"),
+//                        new AntPathRequestMatcher("/swagger-ui.html"),
+//                        new AntPathRequestMatcher("/docs"),
+//                        new AntPathRequestMatcher("/docs/**")
+//                ))
+//                .cors(Customizer.withDefaults())
+//                .headers(h -> h.frameOptions(f -> f.sameOrigin()))
+//                .authorizeHttpRequests(auth -> auth
+//                        // ✅ 문서/헬스/공개 API는 모두 허용
+//                        .requestMatchers(
+//                                "/v3/api-docs/**",
+//                                "/swagger-ui/**",
+//                                "/swagger-ui.html",
+//                                "/docs", "/docs/**",
+//                                "/actuator/health",
+//                                "/api/**"            // 원하신 공개 API
+//                        ).permitAll()
+//                        .anyRequest().authenticated()
+//                )
+//                // 필요 없다면 아래 둘 다 비활성
+//                .httpBasic(AbstractHttpConfigurer::disable)
+//                .formLogin(AbstractHttpConfigurer::disable);
+//
+//        return http.build();
+//    }
+        @Bean
+        SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+            http
+                    // CSRF 전체 비활성(세션 없는 API/문서용이면 이게 단순하고 안전)
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .cors(Customizer.withDefaults())
+                    .headers(h -> h.frameOptions(f -> f.sameOrigin()))
+                    .authorizeHttpRequests(auth -> auth
+                            .requestMatchers(
+                                    "/v3/api-docs/**",
+                                    "/swagger-ui/**",
+                                    "/swagger-ui.html",
+                                    "/docs", "/docs/**",
+                                    "/actuator/health",
+                                    "/api/**",
+                                    "/users/**"// 공개하려는 엔드포인트면 유지
+                            ).permitAll()
+                            .anyRequest().authenticated()
+                    )
+                    // 기본 인증/폼 로그인 비활성
+                    .httpBasic(AbstractHttpConfigurer::disable)
+                    .formLogin(AbstractHttpConfigurer::disable);
 
-                        // 전부 공개할 엔드포인트
-                        .requestMatchers(
-                                "/api/**",
-                                "/docs", "/swagger-ui/**", "/v3/api-docs/**",
-                                "/actuator/health"
-                        ).permitAll()
-
-                        // 나머지는 보호
-                        .anyRequest().authenticated()
-                )
-                // 로그인 폼 대신 Basic 인증만(리다이렉트 없음)
-                .httpBasic(Customizer.withDefaults());
-
-        // formLogin()은 넣지 마세요 (넣으면 /login 리다이렉트 생김)
-        return http.build();
-    }
+            return http.build();
+        }
 
     // CORS (필요시 ALB 도메인만 허용하도록 바꾸세요)
     @Bean
