@@ -1,10 +1,32 @@
+server:
+  port: 8083
+  servlet:
+    context-path: /users   # ✅ 외부의 /points/* 와 일치시킴
+
 spring:
+  application:
+    name: user-service
   datasource:
     # ↓ ECS 태스크 환경변수/시크릿으로 주입됨 (필수)
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none       # Flyway만 사용 (초기엔 update로 임시 생성 가능)
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect  # Hibernate 6 권장
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  security:
+    user:
+      name: admin
+      password: Smartcane1!
+
 
 management:
   endpoints:
